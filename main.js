@@ -49,7 +49,7 @@ const corsConfig = {
 app.use(cors(corsConfig));
 app.options("*", cors(corsConfig));
 
-var port = process.env.PORT || "80"; //local=3000 remote=80
+var port =  local=3000 , remote=80 //process.env.PORT || "80";
 //#endregion
 const user = require("./routes/user");
 const recipes = require("./routes/recipes");
