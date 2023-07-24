@@ -98,7 +98,7 @@ paths:
             schema:
               type: object
               properties:
-                reciepeId:
+                recipeId:
                   type: string
                   description: reciepe's id which the user saved
                   example: 716429
@@ -109,6 +109,24 @@ paths:
           description: user is not authorized
       security:
       - cookieAuth: []
+  /users/createRecipe:
+    post:
+      tags:
+        - recipe
+      summary: create a new recipe
+      description: A JSON/YAML file contains everything needed for recipe creating
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Recipe'
+        description: recipe to add
+      responses:
+        '201':
+          description: A new recipe has been added
+        '400':
+          description: Wrong input data
   /recipes/{recipeId}:
     get:
       tags:
@@ -130,9 +148,205 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RecipePreview'
+                $ref: '#/components/schemas/Recipe'
         "404":
           description: recipeId is not exists
+  /recipes/rand:
+    get:
+      tags: 
+        - recipe
+      summary: get 3 random recipes
+      description: return 3 random recepice for the home page to view
+      operationId: getRecipeArrayRand
+      responses:
+        '200':
+          description: we got the recipes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Recipe'
+        '206':
+          description: user have less then 3 recipes.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Recipe'
+        '400':
+          description: Something went wrong
+  /users/last:
+    get:
+      tags: 
+      - reicpe
+      - users
+      summary: get last 3 recipes for a specific user
+      description: get the last 3 recipes that a user visited in
+      operationId: last3
+      responses:
+        '200':
+          description: successfully show the 3 recipes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RecipePreview'
+              
+        '206':
+          description: user have less then 3 last visited recipes.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RecipePreview'
+        '400':
+          description: user not found
+  /users/own:
+    get:
+      tags: 
+      - reicpe
+      - users
+      summary: get user's self created recipes
+      description: get the recipes that the user created
+      operationId: own
+      responses:
+        '200':
+          description: successfully showed the favorite recipes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RecipePreview'
+        '400':
+          description: user not found
+  /users/family:
+    get:
+      tags: 
+      - users
+      summary: get user's family created recipes
+      description: get the recipes that the user's family own
+      operationId: family
+      responses:
+        '200':
+          description: successfully showed the family recipes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FamilyRecipe'
+        '400':
+          description: user not found
+  /recipes/searchRecipe:
+    get:
+      tags:
+        - recipe
+      summary: Perform a search
+      parameters:
+        - in: header
+          name: searchText
+          schema:
+            type: string
+          description: The search string that will be used
+          example: Simple potatoes in the oven
+        - in: header
+          name: limit
+          schema:
+            type: number
+            description: "Integer. 5(default), 10, or 15. Used to specify the desired number of recipes."
+            example: 10
+            enum:
+              - 5
+              - 10
+              - 15
+        - in: header
+          name: cuisines
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - African
+                - Asian
+                - American
+                - British
+                - Cajun
+                - Caribbean
+                - Chinese
+                - Eastern European
+                - European
+                - French
+                - German
+                - Greek
+                - Indian
+                - Irish
+                - Italian
+                - Japanese
+                - Jewish
+                - Korean
+                - Latin American
+                - Mediterranean
+                - Mexican
+                - Middle Eastern
+                - Nordic
+                - Southern
+                - Spanish
+                - Thai
+                - Vietnamese
+          description: Enum to filter to specific cuisines or none (empty means none).
+          example: [Indian, Italian]
+        - in: header
+          name: diets
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - Gluten Free
+                - Ketogenic
+                - Vegetarian
+                - Lacto-Vegetarian
+                - Ovo-Vegetarian
+                - Vegan
+                - Pescetarian
+                - Paleo
+                - Primal
+                - Low FODMAP
+                - Whole30
+          description: Text to filter by dietary restrictions or none (empty means none).
+          example: [Gluten Free, Vegan]
+        - in: header
+          name: intolerances
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - Dairy
+                - Egg
+                - Gluten
+                - Grain
+                - Peanut
+                - Seafood
+                - Sesame
+                - Shellfish
+                - Soy
+                - Sulfite
+                - Tree Nut
+                - Wheat
+          description: Text to filter by food intolerance or none (empty means none).
+          example: [Dairy, Gluten]
+      responses:
+        '200':
+          description: Success
+        '400':
+          description: Bad Request
+  
 components:
   schemas:
     User:
@@ -169,11 +383,11 @@ components:
           type: string
           description: user's email
           example: my_name12@gmail.com
-        # image-url:
-        #   pattern: URL
-        #   type: string
-        #   description: URL for the user's image
-        #   example: https://cloudinary.com/
+        profilePic:
+          pattern: URL
+          type: string
+          description: URL for the user's image
+          example: s
       description: Model containing user info
     LoginScheme:
       type: object
@@ -227,4 +441,53 @@ components:
           type: boolean
           description: indication if the recipe is gluten free
           example: false
-  
+    Recipe:
+      allOf:
+        - $ref: '#/components/schemas/RecipePreview'
+        - type: object
+          properties:
+            isClicked:
+              type: boolean
+            Favorite:
+              type: boolean
+            ingredients:
+              type: array
+              items:
+                type: object
+                properties:
+                  ingredient:
+                    type: string
+                  amount:
+                    type: string
+                required: 
+                  - ingredient
+                  - amount
+            instructions:
+              type: string
+            servings:
+              type: integer
+            description: 
+              type: string
+              description: the recipe itself
+    FamilyRecipe:
+        type: object
+        properties:
+          user_id:
+            type: integer
+          image:
+            type: string
+          title:
+            type: string
+          origin:
+            type: string
+          occasion:
+            type: string
+          ingredients:
+            type: array
+            items:
+              type: string
+              format: binary
+          instructions:
+            type: string
+          readyInMinutes:
+            type: integer

@@ -15,7 +15,7 @@ app.use(
     cookieName: "session", // the cookie key name
     //secret: process.env.COOKIE_SECRET, // the encryption key
     secret: "template", // the encryption key
-    duration: 24 * 60 * 60 * 1000, // expired after 20 sec
+    duration: 24 * 60 * 60 * 1000*1000, // expired after 20 sec
     activeDuration: 1000 * 60 * 5, // if expiresIn < activeDuration,
     cookie: {
       httpOnly: false,
@@ -49,7 +49,7 @@ const corsConfig = {
 app.use(cors(corsConfig));
 app.options("*", cors(corsConfig));
 
-var port = process.env.PORT || "80"; //local=3000 remote=80
+var port =  local=3000 , remote=80 //process.env.PORT || "80";
 //#endregion
 const user = require("./routes/user");
 const recipes = require("./routes/recipes");
